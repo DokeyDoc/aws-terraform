@@ -2,8 +2,11 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "local_file" "foo" {
-  content         = "Hello DevOps !"
-  filename        = "${path.module}/devops.txt"
-  file_permission = "0644"
+resource "aws_instance" "terraform-test" {
+  ami           = "ami-085ad6ae776d8f09c"
+  instance_type = "t2.nano"
+  key_name      = "vockey"
+  tags = {
+    Name = "terraform-test"
+  }
 }
