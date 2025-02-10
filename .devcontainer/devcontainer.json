@@ -5,8 +5,9 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/base:noble",
 	"features": {
-		"ghcr.io/devcontainers/features/terraform:1": {}
-	}
+		"ghcr.io/devcontainers/features/terraform:1": {},
+		"ghcr.io/devcontainers/features/aws-cli:1": {}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -16,6 +17,10 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "uname -a",
+	"containerEnv": {
+		"AWS_CONFIG_FILE": ".aws/config",
+		"AWS_SHARED_CREDENTIALS_FILE": ".aws/credentials"
+	}
 
 	// Configure tool-specific properties.
 	// "customizations": {},
