@@ -1,2 +1,4 @@
 .terraform
 .aws/credentials
+.ssh/*
+monip.auto.tfvars
