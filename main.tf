@@ -19,14 +19,14 @@ variable "ec2_type" {
 
 variable "ec2_archi" {
   description = "Architecture to use"
-  type = string
-  default = "arm64"
+  type        = string
+  default     = "arm64"
 }
 
 variable "vpc_id" {
   description = "The ID of the VPC"
   type        = string
-  default     = "vpc-0e70c096286612288"  
+  default     = "vpc-0e70c096286612288"
 }
 
 variable "my_ip" {
@@ -41,8 +41,8 @@ variable "admin_ips" {
 
 data "aws_ami" "auto_ami" {
   # executable_users = ["self"]
-  most_recent      = true
-  owners           = ["amazon"]
+  most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
@@ -60,10 +60,10 @@ data "aws_ami" "auto_ami" {
   }
 
   filter {
-    name = "architecture"
+    name   = "architecture"
     values = [var.ec2_archi]
   }
-  
+
 }
 
 locals {
@@ -71,19 +71,19 @@ locals {
 }
 
 resource "aws_instance" "terraform_test-roivioli" {
-  for_each = local.subnet_list
-  ami           = "ami-0a7a4e87939439934"
+  for_each               = local.subnet_list
+  ami                    = "ami-0a7a4e87939439934"
   vpc_security_group_ids = [aws_security_group.admin_ssh.id]
-  instance_type = var.ec2_type
-  subnet_id = each.value
-  key_name      = "vockey"
+  instance_type          = var.ec2_type
+  subnet_id              = each.value
+  key_name               = "vockey"
   tags = {
     Name = "terraform-test-roivioli"
   }
 }
 
 resource "aws_instance" "terraform_test" {
-  count = 5
+  count         = 5
   ami           = "ami-0a7a4e87939439934"
   instance_type = var.ec2_type
   key_name      = "vockey"
@@ -108,30 +108,35 @@ data "aws_vpc" "selected" {
 
 resource "aws_security_group" "admin_ssh" {
 
-  name = "admin-ssh"
-
-  # dynamic "ingress" {
-  #   for_each = var.admin_ips
-  #   content {
-  #     from_port   = 22
-  #     to_port     = 22
-  #     protocol    = "tcp"
-  #     cidr_blocks = [ingress.value]
-  #   }
-
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    cidr_blocks = [var.my_ip]
-
-  }
-
+  name   = "admin-ssh"
   vpc_id = data.aws_vpc.selected.id
 
   tags = {
     Name = "admin-ssh"
   }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ssh_ip" {
+  security_group_id = aws_security_group.admin_ssh.id
+  cidr_ipv4         = "${var.my_ip}"
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+
+resource "aws_vpc_security_group_ingress_rule" "ssh_ips" {
+  security_group_id = aws_security_group.admin_ssh.id
+  for_each          = toset(var.admin_ips)
+  cidr_ipv4         = "${each.value}/32"
+  from_port         = 22
+  ip_protocol       = "tcp"
+  to_port           = 22
+}
+
+resource "aws_vpc_security_group_egress_rule" "all-out" {
+  security_group_id = aws_security_group.admin_ssh.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
 }
 
 output "public_ip" {
